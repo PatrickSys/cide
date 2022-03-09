@@ -41,9 +41,11 @@ public class PersonEntity implements CustomEntity<PersonEntity> {
 
     @Override
     public String name() {
-        return "Person";
+        return "Persona";
     }
 
+
+    // Crea un departamento usando Java Swing
     @Override
     public CustomEntity<PersonEntity> createWithJoption(CustomEntity<?> person) throws UserNullinputException {
      PersonEntity newPerson = new PersonEntity();
@@ -53,7 +55,7 @@ public class PersonEntity implements CustomEntity<PersonEntity> {
         String name = inputString("nombre: ");
         String firstName = inputString("primer apellido");
         String lastName = inputString("segundo apellido");
-        Date birthDate = inputDate("fecha nac. formato yyyy-MMM-dd");
+        Date birthDate = inputDate("fecha nac. formato yyyy-MM-dd");
         String address = inputString("direccion: ");
         String gender = inputString("sexo: ");
         int phoneNumber = inputNumber("telefono: ");
@@ -70,10 +72,6 @@ public class PersonEntity implements CustomEntity<PersonEntity> {
         return newPerson;
     }
 
-    @Override
-    public String findBy() {
-        return null;
-    }
 
     public void setId(int id) {
         this.id = id;
@@ -184,5 +182,15 @@ public class PersonEntity implements CustomEntity<PersonEntity> {
         return null;
     }
 
-
+    @Override
+    public String toString() {
+        return
+                "\tid: " + id +
+                ", nif: " + nif +
+                ", nombre: " + name + " " + firstName + " " + lastName +
+                ", fecha_nac: " + birthDate +
+                ", sexo: " + gender +
+                ", dirección: " + address +
+                ", numero tel.: " + phoneNumber + "\t";
+    }
 }

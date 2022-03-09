@@ -5,6 +5,8 @@ import entity.CustomEntity;
 import entity.DepartmentEntity;
 import entity.PersonEntity;
 import entity.ProfessorEntity;
+import exception.EntityForeignKeyViolation;
+import exception.EntityForeignKeysAlreadyExist;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -14,8 +16,12 @@ import org.hibernate.service.ServiceRegistry;
 
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.OptimisticLockException;
+import javax.persistence.PersistenceException;
 
-import static util.ManagamentUtil.showSuccessfullyEntityDeleted;
+import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.List;
+
+import static util.ManagamentUtil.*;
 
 /************************************************************************
  Made by        PatrickSys
@@ -37,20 +43,41 @@ public class HibernateUtil {
         this.initializeConfig();
     }
 
-    public void create(CustomEntity<?> object) {
+    public void create(CustomEntity<?> entity) {
 
         this.session = this.sessionFactory.openSession();
         this.session.beginTransaction();
-        this.session.persist(object);
+        this.session.save(entity);
         this.session.flush();
         this.session.close();
-
+        showSuccessfullyEntityCreated(entity.name());
     }
 
-    public void update(CustomEntity<?> entity) throws EntityNotFoundException {
+    public List<ProfessorEntity> getProfessorsByDepartment(int departmentId) {
+        this.session = this.sessionFactory.openSession();
+        Query<ProfessorEntity> query = this.session.createQuery("from " + ProfessorEntity.class.getSimpleName() + " e where e."+  "departmentId" + "=:param ", ProfessorEntity.class);
+        query.setParameter("param",departmentId);
+        this.session.beginTransaction();
+        List<ProfessorEntity> queryList = query.list();
+        this.session.flush();
+        this.session.close();
+        return queryList;
+    }
+
+    // Nos aseguramos de que las fk existan
+    public void createProfessor(ProfessorEntity professor) throws EntityForeignKeysAlreadyExist {
+        CustomEntity<ProfessorEntity> professorByPersonId = (CustomEntity<ProfessorEntity>) this.findByField(professor, "personId", String.valueOf(professor.getPersonId()));
+        CustomEntity<ProfessorEntity> professorByDeptId = (CustomEntity<ProfessorEntity>) this.findByField(professor, "departmentId", String.valueOf(professor.getDepartmentId()));
+
+        if(null != professorByPersonId && (professorByPersonId.getId() == professorByDeptId.getId())) throw new EntityForeignKeysAlreadyExist();
+        this.create(professor);
+    }
+
+    public void update(CustomEntity<?> entity) throws EntityNotFoundException, EntityForeignKeyViolation {
         this.session = this.sessionFactory.openSession();
         this.session.beginTransaction();
         this.session.update(entity);
+
         try {
             this.session.flush();
         }
@@ -58,6 +85,11 @@ public class HibernateUtil {
             this.session.close();
             throw new EntityNotFoundException(entity.name());
         }
+        catch(PersistenceException e) {
+            throw new EntityForeignKeyViolation();
+        }
+
+        showSuccessfullyEntityUpdated(entity.name());
         this.session.close();
         }
 
@@ -93,23 +125,30 @@ public class HibernateUtil {
     public CustomEntity<?> findByField(CustomEntity<?> entity, String field, String fieldValue) {
         this.session = this.sessionFactory.openSession();
         this.session.beginTransaction();
-        Query<?> query = this.session.createQuery("from " + entity.getClass().getName() + " e where e."+  field + "=:param ", entity.getClass());
+        Query<?> query = this.session.createQuery("from " + entity.getClass().getSimpleName() + " e where e."+  field + "=:param ", entity.getClass());
         if (fieldValue.matches("\\d+"))
          {
              int intValue = Integer.parseInt(fieldValue);
              query.setParameter("param", intValue);
          }
-
          else {
             query.setParameter("param", fieldValue);
         }
-        System.out.println(query);
         CustomEntity<?> retrievedEntity = (CustomEntity<?>) query.uniqueResult();
-        System.out.println(retrievedEntity);
         this.session.flush();
         this.session.close();
         return retrievedEntity;
     }
+
+
+    public <T> List<CustomEntity<T>> findAll(Class<CustomEntity<T>> baseClass) {
+        this.session = this.sessionFactory.openSession();
+        this.session.beginTransaction();
+        Query<CustomEntity<T>> query = this.session.<T>createQuery("FROM " + baseClass.getSimpleName());
+        List<CustomEntity<T>> resultList = query.list();
+        return resultList;
+    }
+
 
     private void initializeConfig() {
 
@@ -127,12 +166,6 @@ public class HibernateUtil {
             // builds a session factory from the service registry
             this.sessionFactory = configuration.buildSessionFactory(serviceRegistry);
         }
-
-
         this.session = this.sessionFactory.openSession();
-
     }
-
-
-
 }

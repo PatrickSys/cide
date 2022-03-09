@@ -1,5 +1,7 @@
+import entity.ProfessorEntity;
 import exception.UserNullinputException;
 import management.CideManagement;
+import org.hibernate.query.Query;
 
 /************************************************************************
  Made by        PatrickSys
@@ -13,5 +15,6 @@ public class Main {
     public static void main(String[] args) throws UserNullinputException {
         CideManagement management = new CideManagement();
         management.start();
+
     }
 }

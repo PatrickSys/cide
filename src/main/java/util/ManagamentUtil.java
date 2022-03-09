@@ -6,6 +6,8 @@ import javax.swing.*;
 import java.sql.Date;
 import java.util.ArrayList;
 
+import static javax.swing.JOptionPane.showMessageDialog;
+
 
 /************************************************************************
  Made by        PatrickSys
@@ -17,16 +19,12 @@ import java.util.ArrayList;
 
 public class ManagamentUtil {
 
-    public static void showWrongChoiceMessage() {
-        showMessage("Por favor elige una opción entre 1 y 6");
-    }
-
-    private static void showMessage(String message) {
-        JOptionPane.showMessageDialog(null, message);
+    public static void showWrongChoiceMessage(int from, int to) {
+        showMessage("Por favor elige una opción entre " + from + " y " + to );
     }
 
     public static String inputData(String message) throws UserNullinputException {
-        String data =  JOptionPane.showInputDialog(message);
+        String data =  JOptionPane.showInputDialog(null, message, "Gestión CIDE", JOptionPane.QUESTION_MESSAGE);
         if(null == data) {
             throw new UserNullinputException();
         }
@@ -61,7 +59,7 @@ public class ManagamentUtil {
     public static int inputNumber(String message) throws UserNullinputException {
         String input = inputNonBlankData(message);
         if (!isNumberValid(input)) {
-            return inputNumber("Please enter a valid number");
+            return inputNumber("Por favor introduce un número válido");
         }
         return Integer.parseInt(input);
     }
@@ -71,15 +69,17 @@ public class ManagamentUtil {
         if (notNumber(input)) {
             return input;
         }
-        return inputString("Por favor introduce un nombre");
+        return inputString("Por favor introduce un String válido");
     }
+
+
     public static Date inputDate(String message) throws UserNullinputException {
         Date date;
         String input = inputNonBlankData(message);
         try {
             date = Date.valueOf(input);
         }catch (IllegalArgumentException e) {
-            showMessage("Formato de fecha inválido");
+            showMessage("Fecha inválida");
             return inputDate(message);
         }
         return date;
@@ -88,18 +88,36 @@ public class ManagamentUtil {
         return !notNumber(number);
     }
 
-
-
     public static void showEntityNotFoundException(String entityName) {
-        JOptionPane.showMessageDialog(null, entityName +
-                " no encontrado en la base de datos");
+        showMessage(entityName + " no encontrado en la base de datos");
     }
+    public static void showConstraintViolation() {
+        showMessage(" Una foreign key falla");
+    }
+    public static void showSuccessfullyEntityCreated(String entityName) {
+        showMessage(entityName + " creado en la base de datos");
+    }
+
     public static void showSuccessfullyEntityDeleted(String entityName) {
-        JOptionPane.showMessageDialog(null,entityName + " borrado de la base de datos");
+        showMessage(entityName + " borrado de la base de datos");
     }
+
+    public static void showSuccessfullyEntityUpdated(String entityName) {
+        showMessage(entityName, " actualizado en la base de datos");
+    }
+
+    public static void showEntityAlreadyExists(String entityName) {
+        showMessage(entityName, " ya existe");
+    }
+    private static void showMessage(String entityName, String message) {
+        showMessageDialog(null, entityName.concat(message), "Gestión CIDE", JOptionPane.INFORMATION_MESSAGE);
+    }
+
     public static String createForSearch(String field) throws UserNullinputException {
         return inputData(field);
     }
-
+    public static void showMessage(String message) {
+        showMessageDialog(null, message, "Gestión CIDE", JOptionPane.INFORMATION_MESSAGE);
+    }
 
 }

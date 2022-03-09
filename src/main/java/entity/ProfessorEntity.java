@@ -1,7 +1,12 @@
 package entity;
 
+import exception.UserNullinputException;
+
 import javax.persistence.*;
+import java.lang.annotation.Annotation;
 import java.util.Objects;
+
+import static util.ManagamentUtil.inputNumber;
 
 /************************************************************************
  Made by        PatrickSys
@@ -10,8 +15,8 @@ import java.util.Objects;
  Description:
  ************************************************************************/
 @Entity
-@Table(name = "professor", schema = "cide", catalog = "")
-public class ProfessorEntity {
+@Table(name = "professor", schema = "cide")
+public class ProfessorEntity implements CustomEntity<ProfessorEntity> {
     private int id;
     private Integer personId;
     private Integer departmentId;
@@ -22,6 +27,24 @@ public class ProfessorEntity {
     public int getId() {
         return id;
     }
+
+    @Override
+    public String name() {
+        return "Profesor";
+    }
+
+    // Crea un departamento usando Java Swing
+    @Override
+    public CustomEntity<ProfessorEntity> createWithJoption(CustomEntity<?> professor) throws UserNullinputException {
+        ProfessorEntity newProfessor = new ProfessorEntity();
+        newProfessor.setId(professor.getId());
+        int personId = inputNumber("id de persona del profesor: ");
+        int departmentId = inputNumber("id del departamento del profesor");
+        newProfessor.setPersonId(personId);
+        newProfessor.setDepartmentId(departmentId);
+        return newProfessor;
+    }
+
 
     public void setId(int id) {
         this.id = id;
@@ -62,4 +85,16 @@ public class ProfessorEntity {
         return true;
     }
 
+    @Override
+    public Class<? extends Annotation> annotationType() {
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return
+                "id: " + id +
+                ", id persona: " + personId +
+                ", id departamento: " + departmentId;
+    }
 }
